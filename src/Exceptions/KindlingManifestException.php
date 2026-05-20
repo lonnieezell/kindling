@@ -20,6 +20,14 @@ class KindlingManifestException extends KindlingException
     }
 
     /**
+     * Thrown when the manifest.json file exists but cannot be JSON-decoded.
+     */
+    public static function forInvalidManifest(string $path): self
+    {
+        return new self("Kindle: manifest.json at '{$path}' could not be parsed. It may be corrupt — run 'npm run build' to regenerate it.");
+    }
+
+    /**
      * Thrown when a requested entry key is absent from the parsed manifest.
      *
      * @param list<string> $valid
