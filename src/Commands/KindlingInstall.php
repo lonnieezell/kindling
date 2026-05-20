@@ -28,6 +28,10 @@ class KindlingInstall extends BaseCommand
         '--entry'       => 'Comma-separated entry point names (default: app)',
         '--tailwind'    => 'Include Tailwind CSS v4 integration',
         '--no-tailwind' => 'Skip Tailwind CSS v4 integration',
+        '--alpine'      => 'Include Alpine.js',
+        '--no-alpine'   => 'Skip Alpine.js',
+        '--htmx'        => 'Include HTMX v2',
+        '--no-htmx'     => 'Skip HTMX v2',
     ];
 
     private string $rootPath;
@@ -59,10 +63,12 @@ class KindlingInstall extends BaseCommand
     {
         $entries  = $this->resolveEntryNames($params);
         $tailwind = $this->resolveTailwind($params);
+        $alpine   = $this->resolveAlpine($params);
+        $htmx     = $this->resolveHtmx($params);
 
         $this->writeViteConfig($entries, $tailwind);
-        $this->handlePackageJson($tailwind);
-        $this->writeEntryFiles($entries, $tailwind);
+        $this->handlePackageJson($tailwind, $alpine, $htmx);
+        $this->writeEntryFiles($entries, $tailwind, $alpine, $htmx);
         $this->writeAppConfig($entries);
         $this->updateGitignore();
 
@@ -90,6 +96,50 @@ class KindlingInstall extends BaseCommand
         $names = array_filter(array_map(trim(...), explode(',', $raw)));
 
         return $names !== [] ? array_values($names) : ['app'];
+    }
+
+    /**
+     * Resolve whether to include Alpine.js from flags or interactive prompt.
+     *
+     * @param array<int|string, bool|string|null> $params
+     */
+    private function resolveAlpine(array $params): bool
+    {
+        if (isset($params['alpine'])) {
+            return (bool) $params['alpine'];
+        }
+
+        if ($params['no-alpine'] ?? CLI::getOption('no-alpine')) {
+            return false;
+        }
+
+        if (CLI::getOption('alpine')) {
+            return true;
+        }
+
+        return CLI::prompt('Include Alpine.js?', ['y', 'n']) === 'y';
+    }
+
+    /**
+     * Resolve whether to include HTMX v2 from flags or interactive prompt.
+     *
+     * @param array<int|string, bool|string|null> $params
+     */
+    private function resolveHtmx(array $params): bool
+    {
+        if (isset($params['htmx'])) {
+            return (bool) $params['htmx'];
+        }
+
+        if ($params['no-htmx'] ?? CLI::getOption('no-htmx')) {
+            return false;
+        }
+
+        if (CLI::getOption('htmx')) {
+            return true;
+        }
+
+        return CLI::prompt('Include HTMX v2?', ['y', 'n']) === 'y';
     }
 
     /**
@@ -147,21 +197,41 @@ class KindlingInstall extends BaseCommand
     }
 
     /**
-     * Write package.json from stub, or skip with npm install instructions if it already exists.
+     * Write package.json dynamically, or skip with npm install instructions if it already exists.
      */
-    private function handlePackageJson(bool $tailwind): void
+    private function handlePackageJson(bool $tailwind, bool $alpine, bool $htmx): void
     {
-        $target   = $this->rootPath . '/package.json';
-        $packages = $tailwind ? 'vite @tailwindcss/vite' : 'vite';
+        $target = $this->rootPath . '/package.json';
+
+        $devDeps = ['vite' => '^6.0'];
+
+        if ($tailwind) {
+            $devDeps['@tailwindcss/vite'] = '^4.0';
+        }
+
+        if ($alpine) {
+            $devDeps['alpinejs'] = '^3.0';
+        }
+
+        if ($htmx) {
+            $devDeps['htmx.org'] = '^2.0';
+        }
 
         if (file_exists($target)) {
-            CLI::write("  Skipped  package.json (already exists). Run: npm install --save-dev {$packages}", 'yellow');
+            $packageList = implode(' ', array_keys($devDeps));
+            CLI::write("  Skipped  package.json (already exists). Run: npm install --save-dev {$packageList}", 'yellow');
 
             return;
         }
 
-        $stubFile = $tailwind ? 'package.tailwind.json.stub' : 'package.json.stub';
-        file_put_contents($target, file_get_contents($this->stubsPath . '/' . $stubFile));
+        $json = json_encode([
+            'private'         => true,
+            'type'            => 'module',
+            'scripts'         => ['dev' => 'vite', 'build' => 'vite build'],
+            'devDependencies' => $devDeps,
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+
+        file_put_contents($target, $json);
         CLI::write('  Created  package.json', 'green');
         CLI::write('           Run: npm install', 'green');
     }
@@ -171,15 +241,27 @@ class KindlingInstall extends BaseCommand
      *
      * @param list<string> $entries
      */
-    private function writeEntryFiles(array $entries, bool $tailwind): void
+    private function writeEntryFiles(array $entries, bool $tailwind, bool $alpine, bool $htmx): void
     {
-        $jsStub  = (string) file_get_contents($this->stubsPath . '/resources/js/entry.js.stub');
-        $cssStub = (string) file_get_contents(
+        $jsLines = [];
+
+        if ($alpine) {
+            $jsLines[] = "import Alpine from 'alpinejs'";
+            $jsLines[] = 'window.Alpine = Alpine';
+            $jsLines[] = 'Alpine.start()';
+        }
+
+        if ($htmx) {
+            $jsLines[] = "import 'htmx.org'";
+        }
+
+        $jsContent = $jsLines !== [] ? implode("\n", $jsLines) . "\n" : '';
+        $cssStub   = (string) file_get_contents(
             $this->stubsPath . '/resources/css/' . ($tailwind ? 'entry.tailwind.css.stub' : 'entry.css.stub'),
         );
 
         foreach ($entries as $name) {
-            $this->writeFile("resources/js/{$name}.js", $jsStub);
+            $this->writeFile("resources/js/{$name}.js", $jsContent);
             $this->writeFile("resources/css/{$name}.css", $cssStub);
         }
     }

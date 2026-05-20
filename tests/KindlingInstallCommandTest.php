@@ -219,6 +219,116 @@ final class KindlingInstallCommandTest extends CIUnitTestCase
     }
 
     // -------------------------------------------------------------------------
+    // Alpine: --alpine flag
+    // -------------------------------------------------------------------------
+
+    public function testPackageJsonContainsAlpineDependencyWhenAlpineFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'alpine' => true, 'no-htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringContainsString('alpinejs', $contents);
+    }
+
+    public function testJsEntryContainsAlpineImportsWhenAlpineFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'alpine' => true, 'no-htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/resources/js/app.js');
+
+        $this->assertStringContainsString("import Alpine from 'alpinejs'", $contents);
+        $this->assertStringContainsString('window.Alpine = Alpine', $contents);
+        $this->assertStringContainsString('Alpine.start()', $contents);
+    }
+
+    // -------------------------------------------------------------------------
+    // HTMX: --htmx flag
+    // -------------------------------------------------------------------------
+
+    public function testJsEntryContainsHtmxImportWhenHtmxFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'no-alpine' => true, 'htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/resources/js/app.js');
+
+        $this->assertStringContainsString("import 'htmx.org'", $contents);
+    }
+
+    public function testPackageJsonContainsHtmxDependencyWhenHtmxFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'no-alpine' => true, 'htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringContainsString('htmx.org', $contents);
+    }
+
+    // -------------------------------------------------------------------------
+    // --no-alpine / --no-htmx flags
+    // -------------------------------------------------------------------------
+
+    public function testJsEntryHasNoAlpineWhenNoAlpineFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'no-alpine' => true, 'no-htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/resources/js/app.js');
+
+        $this->assertStringNotContainsString('alpinejs', $contents);
+    }
+
+    public function testJsEntryHasNoHtmxWhenNoHtmxFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'no-alpine' => true, 'no-htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/resources/js/app.js');
+
+        $this->assertStringNotContainsString('htmx', $contents);
+    }
+
+    // -------------------------------------------------------------------------
+    // Combinations
+    // -------------------------------------------------------------------------
+
+    public function testAllThreeFlagsCombineCorrectlyInPackageJson(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true, 'alpine' => true, 'htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringContainsString('@tailwindcss/vite', $contents);
+        $this->assertStringContainsString('alpinejs', $contents);
+        $this->assertStringContainsString('htmx.org', $contents);
+    }
+
+    public function testAllThreeFlagsCombineCorrectlyInJsEntry(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true, 'alpine' => true, 'htmx' => true]);
+
+        $contents = (string) file_get_contents($this->tmpDir . '/resources/js/app.js');
+
+        $this->assertStringContainsString("import Alpine from 'alpinejs'", $contents);
+        $this->assertStringContainsString("import 'htmx.org'", $contents);
+    }
+
+    // -------------------------------------------------------------------------
+    // npm hint with dynamic packages
+    // -------------------------------------------------------------------------
+
+    public function testNpmHintListsOnlySelectedPackagesWhenPackageJsonExists(): void
+    {
+        file_put_contents($this->tmpDir . '/package.json', '{}');
+
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true, 'alpine' => true, 'htmx' => true]);
+
+        $output = $this->getStreamFilterBuffer();
+
+        $this->assertStringContainsString('alpinejs', $output);
+        $this->assertStringContainsString('htmx.org', $output);
+        $this->assertStringNotContainsString('@tailwindcss/vite', $output);
+    }
+
+    // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 

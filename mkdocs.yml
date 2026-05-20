@@ -53,3 +53,5 @@ nav:
   - Configuration: configuration.md
   - Using in Views: views.md
   - Tailwind CSS: tailwind.md
+  - Alpine.js: alpine.md
+  - HTMX: htmx.md
