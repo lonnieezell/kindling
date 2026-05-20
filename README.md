@@ -1,14 +1,27 @@
 # myth/kindling
 
-> **Early development** — not ready for production use.
+[![Tests](https://github.com/myth/kindling/actions/workflows/test.yml/badge.svg)](https://github.com/myth/kindling/actions)
+[![PHP Version](https://img.shields.io/badge/php-8.2+-blue)](https://www.php.net/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-A CodeIgniter 4 package that makes it simple to integrate [Vite](https://vitejs.dev/) and [Tailwind CSS](https://tailwindcss.com/) into your CI4 application.
+A [Vite](https://vitejs.dev/) asset pipeline for [CodeIgniter 4](https://codeigniter.com/) — HMR in development, fingerprinted chunk-aware output in production, and zero manual wiring thanks to CI4's auto-discovery.
+
+**[Full documentation →](https://myth.github.io/kindling/)**
+
+## What you get
+
+- **One Spark command** — `kindling:install` scaffolds your entire asset setup
+- **HMR in development** — edit a JS or CSS file and the browser updates instantly, no reload
+- **Fingerprinted builds in production** — Vite hashes every output file; kindling reads the manifest so your views always reference the right URLs
+- **Shared chunk deduplication** — if two entry points share a module, the preload tag is emitted once per request
+- **Optional integrations** — [Tailwind CSS v4](#tailwind-css), [Alpine.js](#alpinejs), and [HTMX v2](#htmx) all opt-in at install time
+- **CSP nonce support** — pass a nonce to `vite_tags()` and it's threaded through every emitted `<script>` tag
 
 ## Requirements
 
 - PHP 8.2+
 - CodeIgniter 4.7+
-- Node.js (for Vite/Tailwind)
+- Node.js 18+
 
 ## Installation
 
@@ -16,113 +29,91 @@ A CodeIgniter 4 package that makes it simple to integrate [Vite](https://vitejs.
 composer require myth/kindling
 ```
 
-## Getting Started
+CI4 discovers the package automatically via Composer — no manual registration needed.
 
-Run `composer install` (or `docker compose up`) to install dependencies.
+## Quick start
 
-> **Note on GitHub Workflows:** The CI workflows in `.github/workflows/` are configured to trigger on PRs targeting `main` or pushes directly to `main`. If your project uses a different branching strategy (e.g., PRs go to `develop`, or you use a `release` branch), update the `branches:` values in each workflow file to match.
-
-## Project Structure
-
-```
-src/
-  Config/
-    Registrar.php   # Hooks into CI4's auto-discovery (filters, etc.)
-    Services.php    # Register package services
-  Exceptions/
-    PackageException.php
-tests/
-  ExampleTest.php
-  _support/         # Test helpers and fixtures
-docs/
-  index.md          # Documentation home page
-  installation.md   # Installation guide
-  changelog.md      # Changelog
-mkdocs.yml          # MkDocs configuration (Material theme)
-```
-
-## Getting Started with Docker
-
-The repo includes a Docker setup using PHP 8.4 with all CI4-required extensions and Xdebug for coverage. Dependencies are installed automatically on first run.
-
-Start the dev server (visits `http://localhost:8080` to see the CI4 welcome page):
+Scaffold your asset setup with a single command:
 
 ```bash
-docker compose up
+php spark kindling:install
 ```
 
-Rebuild the image after changing the `Dockerfile`:
+The command asks which entry points you want and whether to include Tailwind, Alpine, or HTMX. Pass flags to skip the prompts:
 
 ```bash
-composer docker:build
+php spark kindling:install --entry=app --tailwind --alpine --no-htmx
 ```
 
-## Running Tests
+Then install npm dependencies and start the dev server:
 
 ```bash
-composer docker:test            # run phpunit in Docker
-composer docker:test:coverage   # run with HTML coverage report (build/phpunit/html/)
-
-# or locally
-composer test
-composer test:coverage
+npm install
+npm run dev
 ```
 
-## Code Quality
+Add `vite_tags()` to your CI4 layout:
+
+```html
+<head>
+    <?= vite_tags('app') ?>
+</head>
+```
+
+That's it. See the [Getting Started guide](https://myth.github.io/kindling/getting-started/) for the full walkthrough.
+
+## Optional integrations
+
+### Tailwind CSS
+
+Pass `--tailwind` at install time to include [Tailwind CSS v4](https://tailwindcss.com/) via the official Vite plugin. kindling generates a Tailwind-aware `vite.config.js` and a CSS entry stub with the import already included.
 
 ```bash
-composer docker:cs          # check coding style
+php spark kindling:install --tailwind
+```
+
+[Tailwind CSS docs →](https://myth.github.io/kindling/tailwind/)
+
+### Alpine.js
+
+Pass `--alpine` to include [Alpine.js](https://alpinejs.dev/). kindling adds it to `package.json` and writes the initialization code into your JS entry file.
+
+```bash
+php spark kindling:install --alpine
+```
+
+[Alpine.js docs →](https://myth.github.io/kindling/alpine/)
+
+### HTMX
+
+Pass `--htmx` to include [HTMX v2](https://htmx.org/). Works great alongside [michalsn/codeigniter-htmx](https://github.com/michalsn/codeigniter-htmx) for CI4-aware HTMX helpers.
+
+```bash
+php spark kindling:install --htmx
+```
+
+[HTMX docs →](https://myth.github.io/kindling/htmx/)
+
+## Documentation
+
+Full documentation is at **[myth.github.io/kindling](https://myth.github.io/kindling/)**.
+
+- [Getting Started](https://myth.github.io/kindling/getting-started/) — working in under 5 minutes
+- [Vite Fundamentals](https://myth.github.io/kindling/vite-fundamentals/) — new to Vite? Start here
+- [Configuration](https://myth.github.io/kindling/configuration/) — every config option explained
+- [Using in Views](https://myth.github.io/kindling/views/) — the `vite_tags()` helper and nonce support
+
+## Contributing
+
+Pull requests are welcome. The project uses Docker for a consistent dev environment.
+
+```bash
+composer docker:test        # run PHPUnit
 composer docker:cs-fix      # fix coding style
-composer docker:analyze     # PHPStan + Rector dry-run
-composer docker:rector      # apply Rector changes
-composer docker:ci          # run all checks (style, analysis, tests)
-
-# or locally (same commands without the docker: prefix)
-composer cs
-composer cs-fix
-composer analyze
-composer ci
+composer docker:analyze     # PHPStan + Rector
+composer docker:ci          # run all checks
+composer docker:shell       # bash inside the container
 ```
-
-## Docker Shell
-
-Open a bash shell inside the container:
-
-```bash
-composer docker:shell
-```
-
-## Documentation (MkDocs)
-
-Docs live in `docs/` and are built with [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/). Update `mkdocs.yml` with your `site_name`, `repo_url`, and `copyright` after cloning.
-
-**Install MkDocs** (requires Python 3 + pip):
-
-```bash
-pip3 install mkdocs mkdocs-material
-```
-
-**Preview locally** (live-reload at `http://127.0.0.1:8000`):
-
-```bash
-mkdocs serve
-```
-
-**Build static output** to `site/`:
-
-```bash
-mkdocs build
-```
-
-**Deploy to GitHub Pages** (done automatically by CI, but can be run manually):
-
-```bash
-mkdocs gh-deploy
-```
-
-## How the Package Integrates with CI4
-
-CI4 auto-discovers your package via `src/Config/Registrar.php`. Add filter aliases, routes, or other config there. Register services in `src/Config/Services.php`. No manual wiring needed in the host app — Composer autoload and CI4's discovery handle it automatically.
 
 ## License
 
