@@ -6,7 +6,7 @@
 
 A [Vite](https://vitejs.dev/) asset pipeline for [CodeIgniter 4](https://codeigniter.com/) — HMR in development, fingerprinted chunk-aware output in production, and zero manual wiring thanks to CI4's auto-discovery.
 
-**[Full documentation →](https://myth.github.io/kindling/)**
+**[Full documentation →](https://lonnieezell.github.io/kindling/)**
 
 ## What you get
 
@@ -60,7 +60,7 @@ Add `vite_tags()` to your CI4 layout:
 </head>
 ```
 
-That's it. See the [Getting Started guide](https://myth.github.io/kindling/getting-started/) for the full walkthrough.
+That's it. See the [Getting Started guide](https://lonnieezell.github.io/kindling/getting-started/) for the full walkthrough.
 
 ## Optional integrations
 
@@ -72,7 +72,7 @@ Pass `--tailwind` at install time to include [Tailwind CSS v4](https://tailwindc
 php spark kindling:install --tailwind
 ```
 
-[Tailwind CSS docs →](https://myth.github.io/kindling/tailwind/)
+[Tailwind CSS docs →](https://lonnieezell.github.io/kindling/tailwind/)
 
 ### Alpine.js
 
@@ -82,7 +82,7 @@ Pass `--alpine` to include [Alpine.js](https://alpinejs.dev/). kindling adds it 
 php spark kindling:install --alpine
 ```
 
-[Alpine.js docs →](https://myth.github.io/kindling/alpine/)
+[Alpine.js docs →](https://lonnieezell.github.io/kindling/alpine/)
 
 ### HTMX
 
@@ -92,16 +92,16 @@ Pass `--htmx` to include [HTMX v2](https://htmx.org/). Works great alongside [mi
 php spark kindling:install --htmx
 ```
 
-[HTMX docs →](https://myth.github.io/kindling/htmx/)
+[HTMX docs →](https://lonnieezell.github.io/kindling/htmx/)
 
 ## Documentation
 
-Full documentation is at **[myth.github.io/kindling](https://myth.github.io/kindling/)**.
+Full documentation is at **[lonnieezell.github.io/kindling](https://lonnieezell.github.io/kindling/)**.
 
-- [Getting Started](https://myth.github.io/kindling/getting-started/) — working in under 5 minutes
-- [Vite Fundamentals](https://myth.github.io/kindling/vite-fundamentals/) — new to Vite? Start here
-- [Configuration](https://myth.github.io/kindling/configuration/) — every config option explained
-- [Using in Views](https://myth.github.io/kindling/views/) — the `vite_tags()` helper and nonce support
+- [Getting Started](https://lonnieezell.github.io/kindling/getting-started/) — working in under 5 minutes
+- [Vite Fundamentals](https://lonnieezell.github.io/kindling/vite-fundamentals/) — new to Vite? Start here
+- [Configuration](https://lonnieezell.github.io/kindling/configuration/) — every config option explained
+- [Using in Views](https://lonnieezell.github.io/kindling/views/) — the `vite_tags()` helper and nonce support
 
 ## Contributing
 
