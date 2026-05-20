@@ -190,6 +190,68 @@ final class ViteServiceTest extends CIUnitTestCase
         $this->assertSame(1, substr_count($combined, 'assets/shared-ghi.js'));
     }
 
+    public function testDevModeTagsWhenSentinelExists(): void
+    {
+        touch($this->sentinelPath);
+        $service = new ViteService($this->makeConfig([
+            'devServerUrl' => 'http://localhost:5173',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app');
+
+        $this->assertStringContainsString('<script type="module" src="http://localhost:5173/@vite/client">', $output);
+        $this->assertStringContainsString('<script type="module" src="http://localhost:5173/resources/js/app.js">', $output);
+        $this->assertStringNotContainsString('modulepreload', $output);
+        $this->assertStringNotContainsString('stylesheet', $output);
+    }
+
+    public function testForceModDevReturnDevTags(): void
+    {
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'dev',
+            'devServerUrl' => 'http://localhost:5173',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app');
+
+        $this->assertStringContainsString('/@vite/client', $output);
+        $this->assertStringContainsString('resources/js/app.js', $output);
+    }
+
+    public function testHmrClientEmittedOnlyOnceAcrossMultipleTagsCalls(): void
+    {
+        touch($this->sentinelPath);
+        $service = new ViteService($this->makeConfig([
+            'devServerUrl' => 'http://localhost:5173',
+            'entryPoints'  => [
+                'app'   => 'resources/js/app.js',
+                'admin' => 'resources/js/admin.js',
+            ],
+        ]));
+
+        $combined = $service->tags('app') . $service->tags('admin');
+
+        $this->assertSame(1, substr_count($combined, '/@vite/client'));
+        $this->assertStringContainsString('resources/js/app.js', $combined);
+        $this->assertStringContainsString('resources/js/admin.js', $combined);
+    }
+
+    public function testThrowsWhenNeitherSentinelNorManifestExists(): void
+    {
+        $service = new ViteService($this->makeConfig([
+            'manifestPath' => '/nonexistent/manifest.json',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $this->expectException(KindlingException::class);
+        $this->expectExceptionMessageMatches('/Kindle:/');
+        $this->expectExceptionMessageMatches('/npm run dev/');
+
+        $service->tags('app');
+    }
+
     public function testUnknownEntryThrowsWithValidNamesList(): void
     {
         $service = new ViteService($this->makeConfig([

@@ -16,10 +16,27 @@ use Myth\Kindling\Exceptions\KindlingException;
  */
 class ViteService
 {
-    private array $emittedChunks = [];
+    private bool $hmrClientEmitted = false;
+    private array $emittedChunks   = [];
 
     public function __construct(private readonly Kindling $config)
     {
+    }
+
+    /**
+     * Emits dev-mode script tags for HMR client and the entry source file.
+     */
+    private function devTags(string $entry): string
+    {
+        $base = rtrim($this->config->devServerUrl, '/');
+        $tags = '';
+
+        if (! $this->hmrClientEmitted) {
+            $tags .= '<script type="module" src="' . $base . '/@vite/client"></script>' . "\n";
+            $this->hmrClientEmitted = true;
+        }
+
+        return $tags . '<script type="module" src="' . $base . '/' . $this->config->entryPoints[$entry] . '"></script>' . "\n";
     }
 
     /**
@@ -48,6 +65,17 @@ class ViteService
     {
         if (! array_key_exists($entry, $this->config->entryPoints)) {
             throw KindlingException::forUnknownEntry($entry, array_keys($this->config->entryPoints));
+        }
+
+        if ($this->config->forceMode === null
+            && ! file_exists($this->config->sentinelPath)
+            && ! file_exists($this->config->manifestPath)
+        ) {
+            throw KindlingException::forNoViteRunning();
+        }
+
+        if ($this->isDevMode()) {
+            return $this->devTags($entry);
         }
 
         $manifestKey = $this->config->entryPoints[$entry];
