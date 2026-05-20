@@ -122,6 +122,35 @@ final class KindlingInstallCommandTest extends CIUnitTestCase
     }
 
     // -------------------------------------------------------------------------
+    // package.json generation
+    // -------------------------------------------------------------------------
+
+    public function testPackageJsonWrittenOnCleanProject(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $this->assertFileExists($this->tmpDir . '/package.json');
+    }
+
+    public function testPackageJsonContainsTailwindDependencyWhenTailwindSelected(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringContainsString('@tailwindcss/vite', (string) $contents);
+    }
+
+    public function testPackageJsonOmitsTailwindDependencyWhenNoTailwindSelected(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringNotContainsString('@tailwindcss/vite', (string) $contents);
+    }
+
+    // -------------------------------------------------------------------------
     // package.json skipped with instructions
     // -------------------------------------------------------------------------
 

@@ -147,17 +147,23 @@ class KindlingInstall extends BaseCommand
     }
 
     /**
-     * If package.json already exists, print npm install instructions and skip.
-     * Otherwise, package.json is not created (the user must run npm init or copy manually).
+     * Write package.json from stub, or skip with npm install instructions if it already exists.
      */
     private function handlePackageJson(bool $tailwind): void
     {
-        $target = $this->rootPath . '/package.json';
+        $target   = $this->rootPath . '/package.json';
+        $packages = $tailwind ? 'vite @tailwindcss/vite' : 'vite';
 
         if (file_exists($target)) {
-            $packages = $tailwind ? 'vite @tailwindcss/vite' : 'vite';
             CLI::write("  Skipped  package.json (already exists). Run: npm install --save-dev {$packages}", 'yellow');
+
+            return;
         }
+
+        $stubFile = $tailwind ? 'package.tailwind.json.stub' : 'package.json.stub';
+        file_put_contents($target, file_get_contents($this->stubsPath . '/' . $stubFile));
+        CLI::write('  Created  package.json', 'green');
+        CLI::write("           Run: npm install", 'green');
     }
 
     /**
