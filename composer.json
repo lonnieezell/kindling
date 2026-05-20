@@ -1,11 +1,16 @@
 {
     "name": "myth/kindling",
-    "description": "A CodeIgniter 4 integration of Vite and Tailwind CSS.",
+    "description": "A first-class Vite asset pipeline for CodeIgniter 4, with optional Tailwind CSS, Alpine.js, and HTMX support.",
     "license": "MIT",
     "type": "library",
     "keywords": [
         "codeigniter",
-        "codeigniter4"
+        "codeigniter4",
+        "vite",
+        "tailwind",
+        "alpinejs",
+        "htmx",
+        "assets"
     ],
     "authors": [
         {
