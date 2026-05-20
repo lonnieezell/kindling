@@ -6,6 +6,7 @@ namespace Tests;
 
 use CodeIgniter\Test\CIUnitTestCase;
 use Myth\Kindling\Config\Kindling;
+use Myth\Kindling\Exceptions\KindlingException;
 use Myth\Kindling\Services\ViteService;
 
 /**
@@ -14,6 +15,11 @@ use Myth\Kindling\Services\ViteService;
 final class ViteServiceTest extends CIUnitTestCase
 {
     private string $sentinelPath;
+
+    /**
+     * @var list<string>
+     */
+    private array $tempFiles = [];
 
     protected function setUp(): void
     {
@@ -28,6 +34,21 @@ final class ViteServiceTest extends CIUnitTestCase
         if (file_exists($this->sentinelPath)) {
             unlink($this->sentinelPath);
         }
+
+        foreach ($this->tempFiles as $path) {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+    }
+
+    private function makeTempManifest(array $data): string
+    {
+        $path = sys_get_temp_dir() . '/manifest-' . uniqid() . '.json';
+        file_put_contents($path, json_encode($data));
+        $this->tempFiles[] = $path;
+
+        return $path;
     }
 
     private function makeConfig(array $overrides = []): Kindling
@@ -70,5 +91,117 @@ final class ViteServiceTest extends CIUnitTestCase
         $service = new ViteService($this->makeConfig(['forceMode' => 'prod']));
 
         $this->assertFalse($service->isDevMode());
+    }
+
+    public function testProdTagsWhenManifestExistsAndSentinelAbsent(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => ['file' => 'assets/app-abc.js', 'isEntry' => true],
+        ]);
+        // sentinel absent (not touched), manifest exists
+        $service = new ViteService($this->makeConfig([
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app');
+
+        $this->assertStringContainsString('<script type="module"', $output);
+        $this->assertStringContainsString('/build/assets/app-abc.js', $output);
+    }
+
+    public function testForceModeProdReturnsProdTags(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => ['file' => 'assets/app-abc.js', 'isEntry' => true],
+        ]);
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'prod',
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app');
+
+        $this->assertStringContainsString('<script type="module"', $output);
+        $this->assertStringContainsString('/build/assets/app-abc.js', $output);
+    }
+
+    public function testProdOutputOrderIsModulepreloadThenStylesheetThenScript(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => [
+                'file'    => 'assets/app-abc.js',
+                'isEntry' => true,
+                'css'     => ['assets/app-def.css'],
+                'imports' => ['_chunk.js'],
+            ],
+            '_chunk.js' => ['file' => 'assets/chunk-xyz.js'],
+        ]);
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'prod',
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app');
+
+        $preloadPos    = strpos($output, 'modulepreload');
+        $stylesheetPos = strpos($output, 'stylesheet');
+        $scriptPos     = strpos($output, '<script');
+
+        $this->assertNotFalse($preloadPos);
+        $this->assertNotFalse($stylesheetPos);
+        $this->assertNotFalse($scriptPos);
+        $this->assertLessThan($stylesheetPos, $preloadPos);
+        $this->assertLessThan($scriptPos, $stylesheetPos);
+    }
+
+    public function testSharedChunkModulepreloadNotDuplicated(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => [
+                'file'    => 'assets/app-abc.js',
+                'isEntry' => true,
+                'imports' => ['_shared.js'],
+            ],
+            'resources/js/admin.js' => [
+                'file'    => 'assets/admin-def.js',
+                'isEntry' => true,
+                'imports' => ['_shared.js'],
+            ],
+            '_shared.js' => ['file' => 'assets/shared-ghi.js'],
+        ]);
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'prod',
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => [
+                'app'   => 'resources/js/app.js',
+                'admin' => 'resources/js/admin.js',
+            ],
+        ]));
+
+        $combined = $service->tags('app') . $service->tags('admin');
+
+        $this->assertSame(1, substr_count($combined, 'assets/shared-ghi.js'));
+    }
+
+    public function testUnknownEntryThrowsWithValidNamesList(): void
+    {
+        $service = new ViteService($this->makeConfig([
+            'entryPoints' => ['app' => 'resources/js/app.js', 'admin' => 'resources/js/admin.js'],
+        ]));
+
+        $this->expectException(KindlingException::class);
+        $this->expectExceptionMessageMatches('/Kindle:/');
+        $this->expectExceptionMessageMatches('/nope/');
+        $this->expectExceptionMessageMatches('/app/');
+        $this->expectExceptionMessageMatches('/admin/');
+
+        $service->tags('nope');
     }
 }

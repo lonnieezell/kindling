@@ -16,6 +16,8 @@ use Myth\Kindling\Exceptions\KindlingException;
  */
 class ViteService
 {
+    private array $emittedChunks = [];
+
     public function __construct(private readonly Kindling $config)
     {
     }
@@ -44,6 +46,29 @@ class ViteService
      */
     public function tags(string $entry, ?string $nonce = null): string
     {
-        return '';
+        if (! array_key_exists($entry, $this->config->entryPoints)) {
+            throw KindlingException::forUnknownEntry($entry, array_keys($this->config->entryPoints));
+        }
+
+        $manifestKey = $this->config->entryPoints[$entry];
+        $reader      = new ManifestReader($this->config->manifestPath);
+        $resolved    = $reader->resolve($manifestKey);
+        $build       = rtrim($this->config->buildPath, '/');
+        $tags        = '';
+
+        foreach ($resolved->imports as $chunk) {
+            if (! in_array($chunk, $this->emittedChunks, true)) {
+                $this->emittedChunks[] = $chunk;
+                $tags .= '<link rel="modulepreload" href="' . $build . '/' . $chunk . '">' . "\n";
+            }
+        }
+
+        foreach ($resolved->css as $css) {
+            $tags .= '<link rel="stylesheet" href="' . $build . '/' . $css . '">' . "\n";
+        }
+
+        $nonceAttr = $nonce !== null ? ' nonce="' . $nonce . '"' : '';
+
+        return $tags . ('<script type="module" src="' . $build . '/' . $resolved->file . '"' . $nonceAttr . "></script>\n");
     }
 }
