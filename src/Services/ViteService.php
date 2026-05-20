@@ -84,12 +84,12 @@ class ViteService
             return $this->devTags($entry, $nonceAttr);
         }
 
-        $manifestKey   = $this->config->entryPoints[$entry];
-        $reader        = new ManifestReader($this->config->manifestPath);
-        $resolved      = $reader->resolve($manifestKey);
-        $build         = rtrim($this->config->buildPath, '/');
-        $tags          = '';
-        $nonceAttrStr  = $nonceAttr !== null ? ' ' . $nonceAttr : '';
+        $manifestKey  = $this->config->entryPoints[$entry];
+        $reader       = new ManifestReader($this->config->manifestPath);
+        $resolved     = $reader->resolve($manifestKey);
+        $build        = rtrim($this->config->buildPath, '/');
+        $tags         = '';
+        $nonceAttrStr = $nonceAttr !== null ? ' ' . $nonceAttr : '';
 
         foreach ($resolved->imports as $chunk) {
             if (! in_array($chunk, $this->emittedChunks, true)) {

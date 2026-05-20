@@ -53,7 +53,7 @@ class KindlingInstall extends BaseCommand
     /**
      * Execute the install command.
      *
-     * @param array<int|string, string|bool|null> $params
+     * @param array<int|string, bool|string|null> $params
      */
     public function run(array $params): void
     {
@@ -73,7 +73,7 @@ class KindlingInstall extends BaseCommand
     /**
      * Resolve the list of entry point names from params or interactive prompt.
      *
-     * @param array<int|string, string|bool|null> $params
+     * @param array<int|string, bool|string|null> $params
      *
      * @return list<string>
      */
@@ -95,7 +95,7 @@ class KindlingInstall extends BaseCommand
     /**
      * Resolve whether to include Tailwind CSS v4 from flags or interactive prompt.
      *
-     * @param array<int|string, string|bool|null> $params
+     * @param array<int|string, bool|string|null> $params
      */
     private function resolveTailwind(array $params): bool
     {
@@ -163,7 +163,7 @@ class KindlingInstall extends BaseCommand
         $stubFile = $tailwind ? 'package.tailwind.json.stub' : 'package.json.stub';
         file_put_contents($target, file_get_contents($this->stubsPath . '/' . $stubFile));
         CLI::write('  Created  package.json', 'green');
-        CLI::write("           Run: npm install", 'green');
+        CLI::write('           Run: npm install', 'green');
     }
 
     /**
