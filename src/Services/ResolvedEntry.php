@@ -13,9 +13,9 @@ namespace Myth\Kindling\Services;
 readonly class ResolvedEntry
 {
     /**
-     * @param string   $file    Primary JS file path from the manifest.
-     * @param string[] $css     Resolved CSS file paths (from all visited chunks).
-     * @param string[] $imports Resolved chunk file paths in depth-first order.
+     * @param string       $file    Primary JS file path from the manifest.
+     * @param list<string> $css     Resolved CSS file paths (from all visited chunks).
+     * @param list<string> $imports Resolved chunk file paths in depth-first order.
      */
     public function __construct(
         public string $file,

@@ -16,9 +16,22 @@ use Myth\Kindling\Exceptions\KindlingException;
  */
 class ViteService
 {
-    /** @phpstan-ignore property.onlyWritten */
     public function __construct(private readonly Kindling $config)
     {
+    }
+
+    /**
+     * Returns true when the Vite dev server is running.
+     *
+     * Checks $forceMode first; falls back to the presence of the sentinel file.
+     */
+    public function isDevMode(): bool
+    {
+        if ($this->config->forceMode !== null) {
+            return $this->config->forceMode === 'dev';
+        }
+
+        return file_exists($this->config->sentinelPath);
     }
 
     /**

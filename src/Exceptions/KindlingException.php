@@ -24,7 +24,7 @@ class KindlingException extends RuntimeException
     /**
      * Thrown when an unknown entry point name is passed to vite_tags().
      *
-     * @param string[] $valid
+     * @param list<string> $valid
      */
     public static function forUnknownEntry(string $name, array $valid): self
     {

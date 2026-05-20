@@ -22,7 +22,7 @@ class KindlingManifestException extends KindlingException
     /**
      * Thrown when a requested entry key is absent from the parsed manifest.
      *
-     * @param string[] $valid
+     * @param list<string> $valid
      */
     public static function forMissingEntry(string $key, array $valid): self
     {

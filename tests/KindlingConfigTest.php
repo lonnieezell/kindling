@@ -18,6 +18,7 @@ final class KindlingConfigTest extends CIUnitTestCase
 
         $this->assertSame('http://localhost:5173', $config->devServerUrl);
         $this->assertSame(FCPATH . 'build/.vite/manifest.json', $config->manifestPath);
+        $this->assertSame(FCPATH . 'build/.vite-dev-running', $config->sentinelPath);
         $this->assertSame('/build', $config->buildPath);
         $this->assertNull($config->forceMode);
         $this->assertSame([], $config->entryPoints);

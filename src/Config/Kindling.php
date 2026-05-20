@@ -16,6 +16,7 @@ class Kindling extends BaseConfig
 {
     public string $devServerUrl = 'http://localhost:5173';
     public string $manifestPath = FCPATH . 'build/.vite/manifest.json';
+    public string $sentinelPath = FCPATH . 'build/.vite-dev-running';
     public string $buildPath    = '/build';
     public ?string $forceMode   = null;
     public array $entryPoints   = [];
