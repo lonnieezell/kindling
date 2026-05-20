@@ -260,7 +260,7 @@ final class ViteServiceTest extends CIUnitTestCase
             'entryPoints'  => ['app' => 'resources/js/app.js'],
         ]));
 
-        $output = $service->tags('app', 'abc123');
+        $output = $service->tags('app', 'nonce="abc123"');
 
         $this->assertStringContainsString('nonce="abc123"', $output);
         $this->assertSame(2, substr_count($output, 'nonce="abc123"'));
@@ -278,7 +278,7 @@ final class ViteServiceTest extends CIUnitTestCase
             'entryPoints'  => ['app' => 'resources/js/app.js'],
         ]));
 
-        $output = $service->tags('app', 'abc123');
+        $output = $service->tags('app', 'nonce="abc123"');
 
         $this->assertStringContainsString('nonce="abc123"', $output);
     }
@@ -314,7 +314,7 @@ final class ViteServiceTest extends CIUnitTestCase
             'entryPoints'  => ['app' => 'resources/js/app.js'],
         ]));
 
-        $output = $service->tags('app', 'abc123');
+        $output = $service->tags('app', 'nonce="abc123"');
 
         preg_match_all('/<link[^>]+nonce[^>]*>/', $output, $matches);
         $this->assertEmpty($matches[0], 'No <link> tag should have a nonce attribute');

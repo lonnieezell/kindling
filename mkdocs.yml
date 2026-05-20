@@ -48,5 +48,8 @@ plugins:
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - Changelog: changelog.md
+  - Getting Started: getting-started.md
+  - Vite Fundamentals: vite-fundamentals.md
+  - Configuration: configuration.md
+  - Using in Views: views.md
+  - Tailwind CSS: tailwind.md

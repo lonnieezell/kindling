@@ -122,6 +122,35 @@ final class KindlingInstallCommandTest extends CIUnitTestCase
     }
 
     // -------------------------------------------------------------------------
+    // package.json generation
+    // -------------------------------------------------------------------------
+
+    public function testPackageJsonWrittenOnCleanProject(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $this->assertFileExists($this->tmpDir . '/package.json');
+    }
+
+    public function testPackageJsonContainsTailwindDependencyWhenTailwindSelected(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringContainsString('@tailwindcss/vite', (string) $contents);
+    }
+
+    public function testPackageJsonOmitsTailwindDependencyWhenNoTailwindSelected(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/package.json');
+
+        $this->assertStringNotContainsString('@tailwindcss/vite', (string) $contents);
+    }
+
+    // -------------------------------------------------------------------------
     // package.json skipped with instructions
     // -------------------------------------------------------------------------
 
@@ -133,6 +162,60 @@ final class KindlingInstallCommandTest extends CIUnitTestCase
 
         $this->assertSame('{}', file_get_contents($this->tmpDir . '/package.json'));
         $this->assertStringContainsString('npm install --save-dev vite', $this->getStreamFilterBuffer());
+    }
+
+    // -------------------------------------------------------------------------
+    // Tailwind: --tailwind flag
+    // -------------------------------------------------------------------------
+
+    public function testViteConfigIncludesTailwindPluginWhenTailwindFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/vite.config.js');
+
+        $this->assertStringContainsString("import tailwindcss from '@tailwindcss/vite'", (string) $contents);
+        $this->assertStringContainsString('tailwindcss()', (string) $contents);
+    }
+
+    public function testCssEntryContainsTailwindImportWhenTailwindFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/resources/css/app.css');
+
+        $this->assertStringContainsString('@import "tailwindcss"', (string) $contents);
+    }
+
+    public function testNpmInstructionsIncludeTailwindPackageWhenTailwindFlagSet(): void
+    {
+        file_put_contents($this->tmpDir . '/package.json', '{}');
+
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $this->assertStringContainsString('@tailwindcss/vite', $this->getStreamFilterBuffer());
+    }
+
+    // -------------------------------------------------------------------------
+    // Tailwind: --no-tailwind flag
+    // -------------------------------------------------------------------------
+
+    public function testViteConfigOmitsTailwindPluginWhenNoTailwindFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/vite.config.js');
+
+        $this->assertStringNotContainsString('tailwindcss', (string) $contents);
+    }
+
+    public function testCssEntryIsEmptyWhenNoTailwindFlagSet(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $contents = file_get_contents($this->tmpDir . '/resources/css/app.css');
+
+        $this->assertStringNotContainsString('@import', (string) $contents);
     }
 
     // -------------------------------------------------------------------------
