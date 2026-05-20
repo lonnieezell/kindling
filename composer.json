@@ -27,6 +27,9 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
+        "files": [
+            "src/Helpers/vite_helper.php"
+        ],
         "psr-4": {
             "Myth\\Kindling\\": "src"
         }

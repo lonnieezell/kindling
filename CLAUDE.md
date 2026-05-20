@@ -4,64 +4,69 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A CodeIgniter 4 package. Composer package name: `myth/kindling`. PHP namespace root: `Myth\Kindling\`.
+A CodeIgniter 4 Composer package (`myth/kindling`) that provides a first-class Vite asset pipeline for CI4 apps — HMR in development, fingerprinted chunk-aware output in production. PHP namespace root: `Myth\Kindling\`.
+
+## General Guidelines
+- When creating new classes, or editing existing ones, ensure that a class-level docblock is present, describing the purpose of the class and any important details. Method-level docblocks should be added for all public methods, describing their parameters, return values, and any exceptions they may throw.
+- Follow the existing code style and conventions used throughout the repository. This includes naming conventions, indentation, and spacing. Refer to the `.php-cs-fixer.dist.php` file for specific coding style rules
 
 ## Commands
 
-### Testing
+All quality checks should be run via Docker. Prefix any `composer` script with `docker:` to run inside the container.
+
 ```bash
-composer test                   # run PHPUnit locally
-composer test:coverage          # HTML coverage report → build/phpunit/html/
-composer docker:test            # run PHPUnit inside Docker
-composer docker:test:coverage   # coverage inside Docker
+composer docker:test            # run PHPUnit
+composer docker:cs              # check coding style (dry-run)
+composer docker:cs-fix          # auto-fix coding style
+composer docker:analyze         # PHPStan (level 5) + Rector dry-run
+composer docker:rector          # apply Rector changes
+composer docker:ci              # cs → analyze → test (phpcpd not available in Docker)
+composer docker:shell           # bash shell inside container
+composer docker:build           # rebuild image after Dockerfile changes
 ```
 
-Run a single test file:
+Run a single test file inside Docker:
 ```bash
-./vendor/bin/phpunit tests/ExampleTest.php
-```
-
-### Code Quality
-```bash
-composer cs          # check coding style (php-cs-fixer, dry-run)
-composer cs-fix      # auto-fix coding style
-composer analyze     # PHPStan (level 5) + Rector dry-run
-composer rector      # apply Rector changes
-composer deduplicate # phpcpd duplicate detection
-composer ci          # run all checks: cs → deduplicate → analyze → test
-```
-
-Docker equivalents: prefix any command above with `docker:` (e.g., `composer docker:ci`).
-
-### Docker
-```bash
-docker compose up         # start dev server at http://localhost:8080
-composer docker:build     # rebuild image after Dockerfile changes
-composer docker:shell     # bash shell inside container
+composer docker:test -- tests/SomeTest.php
 ```
 
 ## Architecture
 
 **CI4 Auto-Discovery** — CI4 discovers this package automatically via Composer autoload. No manual wiring is needed in the host app.
 
-- `src/Config/Registrar.php` — registers filter aliases and other CI4 config hooks; CI4 calls static methods on this class during bootstrap
-- `src/Config/Services.php` — extends `BaseService` to register package services available via `service('name')`
-- `src/Exceptions/PackageException.php` — base exception class for the package
+### Key files
 
-**Namespace**: `Myth\Kindling\` maps to `src/`. Test namespace `Tests\` maps to `tests/`, `Tests\Support\` maps to `tests/_support/`.
+- `src/Config/Kindling.php` — base config class users extend in `app/Config/Kindling.php`. Properties: `$devServerUrl`, `$manifestPath`, `$buildPath`, `$forceMode`, `$entryPoints`.
+- `src/Config/Services.php` — registers `ViteService` under the `vite` key as a shared singleton; CI4 discovers it via namespace scanning.
+- `src/Config/Registrar.php` — CI4 calls static methods here during bootstrap to register filter aliases and config hooks.
+- `src/Services/ViteService.php` — main entry point; detects dev vs prod, emits `<script>`/`<link>` tags, deduplicates chunks across multiple `tags()` calls per request.
+- `src/Services/ManifestReader.php` — parses `manifest.json`, resolves entry points to `ResolvedEntry` DTOs with depth-first chunk traversal.
+- `src/Services/ResolvedEntry.php` — readonly DTO: `string $file`, `array $css`, `array $imports` (all raw manifest paths relative to build root).
+- `src/Helpers/vite_helper.php` — loaded via `autoload.files`; exposes `vite_tags(string $entry, ?string $nonce = null): string`.
+- `src/Exceptions/KindlingException.php` — base exception; factories: `forNoViteRunning()`, `forUnknownEntry(name, valid[])`.
+- `src/Exceptions/KindlingManifestException.php` — extends base; factories: `forMissingManifest(path)`, `forMissingEntry(key, valid[])`.
+- `src/plugin.js` — ESM Vite plugin bundled with the package; imported directly from `vendor/` in generated `vite.config.js`.
 
-**PHPUnit bootstrap**: uses `vendor/codeigniter4/framework/system/Test/bootstrap.php` — this is required for CI4 test helpers and must remain in `phpunit.xml.dist`.
+**Dev/prod detection** uses a sentinel file (`public/build/.vite-dev-running`) written by `plugin.js` on dev server start and deleted on shutdown/build. `Config\Kindling::$forceMode` (`'dev'`|`'prod'`|`null`) overrides detection.
 
-## Pre-commit Hook
+**Namespace**: `Myth\Kindling\` → `src/`. Test namespaces: `Tests\` → `tests/`, `Tests\Support\` → `tests/_support/`.
 
-`composer install` / `composer update` installs a pre-commit hook (`admin/pre-commit → .git/hooks/pre-commit`) that:
-1. Lints PHP syntax on staged `.php` files
-2. Auto-runs `php-cs-fixer` on staged files and re-stages the fixes
+**PHPUnit bootstrap**: `vendor/codeigniter4/framework/system/Test/bootstrap.php` — required for CI4 test helpers; must remain in `phpunit.xml.dist`.
 
-## CI Workflows
+## Code Style Rules
 
-Workflows run on `develop` branch PRs/pushes. PHPUnit runs against PHP 8.2–8.5 × MySQL/SQLite/PostgreSQL/SQLSRV/OCI8.
+- **No file-level copyright/license docblocks** — `header_comment` is disabled in `.php-cs-fixer.dist.php`. Do not add them.
+- All files use `declare(strict_types=1)`.
+- Error messages always prefixed with `Kindle:` and include actionable instructions (e.g. `"Kindle: No manifest found at '{path}'. Run 'npm run build' to generate it."`).
 
 ## PHPStan
 
-Level 5 with strict rules enabled (`phpstan.neon.dist`). When adding new Config namespaces or Services, register them under `parameters.codeigniter.additionalConfigNamespaces` / `additionalServices` in `phpstan.neon.dist`.
+Level 5 with strict rules (`phpstan.neon.dist`). When adding new `Config\` classes or `Services`, register them under `parameters.codeigniter.additionalConfigNamespaces` / `additionalServices` in `phpstan.neon.dist`.
+
+## CI Workflows
+
+Workflows run on `main` branch PRs/pushes. PHPUnit matrix: PHP 8.2–8.5 × MySQL / SQLite / PostgreSQL / SQLSRV / OCI8.
+
+## Pre-commit Hook
+
+`composer install`/`update` installs a pre-commit hook (`admin/pre-commit → .git/hooks/pre-commit`) that lints staged `.php` files and auto-runs `php-cs-fixer` on them.
