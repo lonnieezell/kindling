@@ -26,7 +26,8 @@ class KindlingInstall extends BaseCommand
      */
     protected $options = [
         '--entry'       => 'Comma-separated entry point names (default: app)',
-        '--no-tailwind' => 'Skip Tailwind integration (no-op in base install)',
+        '--tailwind'    => 'Include Tailwind CSS v4 integration',
+        '--no-tailwind' => 'Skip Tailwind CSS v4 integration',
     ];
 
     private string $rootPath;
@@ -52,15 +53,16 @@ class KindlingInstall extends BaseCommand
     /**
      * Execute the install command.
      *
-     * @param array<int|string, string|null> $params
+     * @param array<int|string, string|bool|null> $params
      */
     public function run(array $params): void
     {
-        $entries = $this->resolveEntryNames($params);
+        $entries  = $this->resolveEntryNames($params);
+        $tailwind = $this->resolveTailwind($params);
 
-        $this->writeViteConfig($entries);
-        $this->handlePackageJson();
-        $this->writeEntryFiles($entries);
+        $this->writeViteConfig($entries, $tailwind);
+        $this->handlePackageJson($tailwind);
+        $this->writeEntryFiles($entries, $tailwind);
         $this->writeAppConfig($entries);
         $this->updateGitignore();
 
@@ -71,7 +73,7 @@ class KindlingInstall extends BaseCommand
     /**
      * Resolve the list of entry point names from params or interactive prompt.
      *
-     * @param array<int|string, string|null> $params
+     * @param array<int|string, string|bool|null> $params
      *
      * @return list<string>
      */
@@ -91,11 +93,37 @@ class KindlingInstall extends BaseCommand
     }
 
     /**
+     * Resolve whether to include Tailwind CSS v4 from flags or interactive prompt.
+     *
+     * @param array<int|string, string|bool|null> $params
+     */
+    private function resolveTailwind(array $params): bool
+    {
+        if (isset($params['tailwind'])) {
+            return (bool) $params['tailwind'];
+        }
+
+        $noTailwind = $params['no-tailwind'] ?? CLI::getOption('no-tailwind');
+
+        if ($noTailwind !== null) {
+            return false;
+        }
+
+        $withTailwind = CLI::getOption('tailwind');
+
+        if ($withTailwind !== null) {
+            return true;
+        }
+
+        return CLI::prompt('Include Tailwind CSS v4?', ['y', 'n']) === 'y';
+    }
+
+    /**
      * Write vite.config.js from stub. Skipped if the file already exists.
      *
      * @param list<string> $entries
      */
-    private function writeViteConfig(array $entries): void
+    private function writeViteConfig(array $entries, bool $tailwind): void
     {
         $target = $this->rootPath . '/vite.config.js';
 
@@ -110,7 +138,8 @@ class KindlingInstall extends BaseCommand
             array_map(static fn (string $n) => "resources/js/{$n}.js", $entries),
         ));
 
-        $stub     = (string) file_get_contents($this->stubsPath . '/vite.config.js.stub');
+        $stubFile = $tailwind ? 'vite.config.tailwind.js.stub' : 'vite.config.js.stub';
+        $stub     = (string) file_get_contents($this->stubsPath . '/' . $stubFile);
         $contents = str_replace('{entry_inputs}', $inputs, $stub);
 
         file_put_contents($target, $contents);
@@ -121,12 +150,13 @@ class KindlingInstall extends BaseCommand
      * If package.json already exists, print npm install instructions and skip.
      * Otherwise, package.json is not created (the user must run npm init or copy manually).
      */
-    private function handlePackageJson(): void
+    private function handlePackageJson(bool $tailwind): void
     {
         $target = $this->rootPath . '/package.json';
 
         if (file_exists($target)) {
-            CLI::write('  Skipped  package.json (already exists). Run: npm install --save-dev vite', 'yellow');
+            $packages = $tailwind ? 'vite @tailwindcss/vite' : 'vite';
+            CLI::write("  Skipped  package.json (already exists). Run: npm install --save-dev {$packages}", 'yellow');
         }
     }
 
@@ -135,10 +165,12 @@ class KindlingInstall extends BaseCommand
      *
      * @param list<string> $entries
      */
-    private function writeEntryFiles(array $entries): void
+    private function writeEntryFiles(array $entries, bool $tailwind): void
     {
         $jsStub  = (string) file_get_contents($this->stubsPath . '/resources/js/entry.js.stub');
-        $cssStub = (string) file_get_contents($this->stubsPath . '/resources/css/entry.css.stub');
+        $cssStub = (string) file_get_contents(
+            $this->stubsPath . '/resources/css/' . ($tailwind ? 'entry.tailwind.css.stub' : 'entry.css.stub'),
+        );
 
         foreach ($entries as $name) {
             $this->writeFile("resources/js/{$name}.js", $jsStub);

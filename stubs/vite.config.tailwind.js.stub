@@ -1,0 +1,12 @@
+import { defineConfig } from 'vite'
+import codeigniter from './vendor/myth/kindling/src/plugin.js'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+    plugins: [
+        codeigniter({
+            input: [{entry_inputs}],
+        }),
+        tailwindcss(),
+    ],
+})
