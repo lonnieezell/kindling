@@ -252,6 +252,74 @@ final class ViteServiceTest extends CIUnitTestCase
         $service->tags('app');
     }
 
+    public function testNonceAppearsOnAllScriptTagsInDevMode(): void
+    {
+        touch($this->sentinelPath);
+        $service = new ViteService($this->makeConfig([
+            'devServerUrl' => 'http://localhost:5173',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app', 'abc123');
+
+        $this->assertStringContainsString('nonce="abc123"', $output);
+        $this->assertSame(2, substr_count($output, 'nonce="abc123"'));
+    }
+
+    public function testNonceAppearsOnScriptTagInProdMode(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => ['file' => 'assets/app-abc.js', 'isEntry' => true],
+        ]);
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'prod',
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app', 'abc123');
+
+        $this->assertStringContainsString('nonce="abc123"', $output);
+    }
+
+    public function testNullNonceProducesNoNonceAttribute(): void
+    {
+        touch($this->sentinelPath);
+        $service = new ViteService($this->makeConfig([
+            'devServerUrl' => 'http://localhost:5173',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app', null);
+
+        $this->assertStringNotContainsString('nonce', $output);
+    }
+
+    public function testNonceDoesNotAppearOnLinkTags(): void
+    {
+        $manifest = $this->makeTempManifest([
+            'resources/js/app.js' => [
+                'file'    => 'assets/app-abc.js',
+                'isEntry' => true,
+                'css'     => ['assets/app-def.css'],
+                'imports' => ['_chunk.js'],
+            ],
+            '_chunk.js' => ['file' => 'assets/chunk-xyz.js'],
+        ]);
+        $service = new ViteService($this->makeConfig([
+            'forceMode'    => 'prod',
+            'manifestPath' => $manifest,
+            'buildPath'    => '/build',
+            'entryPoints'  => ['app' => 'resources/js/app.js'],
+        ]));
+
+        $output = $service->tags('app', 'abc123');
+
+        preg_match_all('/<link[^>]+nonce[^>]*>/', $output, $matches);
+        $this->assertEmpty($matches[0], 'No <link> tag should have a nonce attribute');
+    }
+
     public function testUnknownEntryThrowsWithValidNamesList(): void
     {
         $service = new ViteService($this->makeConfig([

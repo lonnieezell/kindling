@@ -25,18 +25,22 @@ class ViteService
 
     /**
      * Emits dev-mode script tags for HMR client and the entry source file.
+     *
+     * @param string      $entry Named entry point key.
+     * @param string|null $nonce Optional CSP nonce applied to all script tags.
      */
-    private function devTags(string $entry): string
+    private function devTags(string $entry, ?string $nonce = null): string
     {
-        $base = rtrim($this->config->devServerUrl, '/');
-        $tags = '';
+        $base      = rtrim($this->config->devServerUrl, '/');
+        $nonceAttr = $nonce !== null ? ' nonce="' . $nonce . '"' : '';
+        $tags      = '';
 
         if (! $this->hmrClientEmitted) {
-            $tags .= '<script type="module" src="' . $base . '/@vite/client"></script>' . "\n";
+            $tags .= '<script type="module" src="' . $base . '/@vite/client"' . $nonceAttr . "></script>\n";
             $this->hmrClientEmitted = true;
         }
 
-        return $tags . '<script type="module" src="' . $base . '/' . $this->config->entryPoints[$entry] . '"></script>' . "\n";
+        return $tags . '<script type="module" src="' . $base . '/' . $this->config->entryPoints[$entry] . '"' . $nonceAttr . "></script>\n";
     }
 
     /**
@@ -75,7 +79,7 @@ class ViteService
         }
 
         if ($this->isDevMode()) {
-            return $this->devTags($entry);
+            return $this->devTags($entry, $nonce);
         }
 
         $manifestKey = $this->config->entryPoints[$entry];
