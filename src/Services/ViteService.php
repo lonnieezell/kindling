@@ -26,13 +26,14 @@ class ViteService
     /**
      * Emits dev-mode script tags for HMR client and the entry source file.
      *
-     * @param string      $entry Named entry point key.
-     * @param string|null $nonce Optional CSP nonce applied to all script tags.
+     * @param string      $entry     Named entry point key.
+     * @param string|null $nonceAttr Full nonce attribute string (e.g. from csp_script_nonce()) or a CI4 CSP
+     *                               placeholder (e.g. '{csp-script-nonce}'). Applied to all script tags.
      */
-    private function devTags(string $entry, ?string $nonce = null): string
+    private function devTags(string $entry, ?string $nonceAttr = null): string
     {
         $base      = rtrim($this->config->devServerUrl, '/');
-        $nonceAttr = $nonce !== null ? ' nonce="' . $nonce . '"' : '';
+        $nonceAttr = $nonceAttr !== null ? ' ' . $nonceAttr : '';
         $tags      = '';
 
         if (! $this->hmrClientEmitted) {
@@ -60,12 +61,13 @@ class ViteService
     /**
      * Emits script and link tags for the given named entry point.
      *
-     * @param string      $entry Named entry point key from Config\Kindling::$entryPoints.
-     * @param string|null $nonce Optional CSP nonce applied to all script tags.
+     * @param string      $entry     Named entry point key from Config\Kindling::$entryPoints.
+     * @param string|null $nonceAttr Full nonce attribute string (e.g. from csp_script_nonce()) or a CI4 CSP
+     *                               placeholder (e.g. '{csp-script-nonce}'). Applied to all script tags.
      *
      * @throws KindlingException if the entry name is unknown or no Vite output is available.
      */
-    public function tags(string $entry, ?string $nonce = null): string
+    public function tags(string $entry, ?string $nonceAttr = null): string
     {
         if (! array_key_exists($entry, $this->config->entryPoints)) {
             throw KindlingException::forUnknownEntry($entry, array_keys($this->config->entryPoints));
@@ -79,14 +81,15 @@ class ViteService
         }
 
         if ($this->isDevMode()) {
-            return $this->devTags($entry, $nonce);
+            return $this->devTags($entry, $nonceAttr);
         }
 
-        $manifestKey = $this->config->entryPoints[$entry];
-        $reader      = new ManifestReader($this->config->manifestPath);
-        $resolved    = $reader->resolve($manifestKey);
-        $build       = rtrim($this->config->buildPath, '/');
-        $tags        = '';
+        $manifestKey   = $this->config->entryPoints[$entry];
+        $reader        = new ManifestReader($this->config->manifestPath);
+        $resolved      = $reader->resolve($manifestKey);
+        $build         = rtrim($this->config->buildPath, '/');
+        $tags          = '';
+        $nonceAttrStr  = $nonceAttr !== null ? ' ' . $nonceAttr : '';
 
         foreach ($resolved->imports as $chunk) {
             if (! in_array($chunk, $this->emittedChunks, true)) {
@@ -99,8 +102,6 @@ class ViteService
             $tags .= '<link rel="stylesheet" href="' . $build . '/' . $css . '">' . "\n";
         }
 
-        $nonceAttr = $nonce !== null ? ' nonce="' . $nonce . '"' : '';
-
-        return $tags . ('<script type="module" src="' . $build . '/' . $resolved->file . '"' . $nonceAttr . "></script>\n");
+        return $tags . ('<script type="module" src="' . $build . '/' . $resolved->file . '"' . $nonceAttrStr . "></script>\n");
     }
 }
