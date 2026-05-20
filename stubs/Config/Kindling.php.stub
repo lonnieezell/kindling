@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Config;
+
+use Myth\Kindling\Config\Kindling as BaseKindling;
+
+/**
+ * Application-level Kindling configuration.
+ *
+ * Override any base config property here. Add entry points to $entryPoints
+ * as 'name' => 'source-path' pairs matching your vite.config.js inputs.
+ */
+class Kindling extends BaseKindling
+{
+    public array $entryPoints = [
+{entry_map}
+    ];
+}

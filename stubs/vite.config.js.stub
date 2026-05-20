@@ -1,0 +1,10 @@
+import { defineConfig } from 'vite'
+import codeigniter from './vendor/myth/kindling/src/plugin.js'
+
+export default defineConfig({
+    plugins: [
+        codeigniter({
+            input: [{entry_inputs}],
+        }),
+    ],
+})
