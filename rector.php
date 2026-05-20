@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * This file is part of YourVendor/YourPackage.
+ * This file is part of myth/kindling.
  *
  * (c) Your Name <you@example.com>
  *

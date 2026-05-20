@@ -1,35 +1,26 @@
-# YourVendor/YourPackage
+# myth/kindling
 
-A starter template for building CodeIgniter 4 packages. Replace `YourVendor`, `YourPackage`, and related placeholders throughout the codebase before publishing.
+> **Early development** — not ready for production use.
 
-## Starting a New Project from This Template
-
-1. Create a new empty repo on GitHub (no README, no .gitignore).
-2. Clone this template and point it at your new repo:
-
-```bash
-git clone https://github.com/lonnieezell/codeigniter-package-skeleton.git your-package-name
-cd your-package-name
-git remote set-url origin https://github.com/YOUR_ORG/your-package-name.git
-git push -u origin main
-```
-
-3. Find and replace all placeholder strings throughout the codebase:
-
-| Placeholder | Replace with |
-|---|---|
-| `YourVendor` | Your Composer vendor name (e.g. `Acme`) |
-| `YourPackage` | Your package name (e.g. `MyAddon`) |
-| `vendor/package` | Your Composer package slug (e.g. `acme/my-addon`) |
-
-4. Run `composer install` (or `docker compose up`) to install dependencies.
-
-> **Note on GitHub Workflows:** The CI workflows in `.github/workflows/` are configured to trigger on PRs targeting `main` or pushes directly to `main`. If your project uses a different branching strategy (e.g., PRs go to `develop`, or you use a `release` branch), update the `branches:` values in each workflow file to match.
+A CodeIgniter 4 package that makes it simple to integrate [Vite](https://vitejs.dev/) and [Tailwind CSS](https://tailwindcss.com/) into your CI4 application.
 
 ## Requirements
 
 - PHP 8.2+
 - CodeIgniter 4.7+
+- Node.js (for Vite/Tailwind)
+
+## Installation
+
+```bash
+composer require myth/kindling
+```
+
+## Getting Started
+
+Run `composer install` (or `docker compose up`) to install dependencies.
+
+> **Note on GitHub Workflows:** The CI workflows in `.github/workflows/` are configured to trigger on PRs targeting `main` or pushes directly to `main`. If your project uses a different branching strategy (e.g., PRs go to `develop`, or you use a `release` branch), update the `branches:` values in each workflow file to match.
 
 ## Project Structure
 

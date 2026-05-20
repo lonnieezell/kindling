@@ -1,4 +1,4 @@
-# YourVendor/YourPackage
+# myth/kindling
 
 Welcome to the documentation.
 
