@@ -1,7 +1,9 @@
+import { spawn } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { afterEach, beforeEach, describe, it, expect } from 'vitest';
+import { fileURLToPath } from 'url';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 import { build, createServer, resolveConfig } from 'vite';
 import kindling from '../src/plugin.mjs';
 
@@ -140,6 +142,53 @@ describe('kindling plugin inside Vite', () => {
         await server.close();
         expect(fs.existsSync(sentinelIn('dist'))).toBe(false);
     });
+
+    it('keeps the sentinel when Vite restarts the dev server, and removes it on final shutdown', async () => {
+        const server = await startServer();
+
+        await server.restart();
+        expect(fs.existsSync(sentinelIn('public', 'build'))).toBe(true);
+
+        await server.close();
+        expect(fs.existsSync(sentinelIn('public', 'build'))).toBe(false);
+    });
+
+    it('leaves no process listeners behind after a restart and shutdown', async () => {
+        const countListeners = () => ['exit', 'SIGINT', 'SIGTERM'].map((event) => process.listenerCount(event));
+        const before = countListeners();
+
+        const server = await startServer();
+        await server.restart();
+        await server.close();
+
+        expect(countListeners()).toEqual(before);
+    });
+
+    it('removes the sentinel and exits when the dev server receives SIGINT', async () => {
+        const pluginPath = fileURLToPath(new URL('../src/plugin.mjs', import.meta.url));
+        const viteBin = fileURLToPath(new URL('../node_modules/.bin/vite', import.meta.url));
+        fs.writeFileSync(
+            path.join(root, 'vite.config.mjs'),
+            `import kindling from ${JSON.stringify(pluginPath)};\nexport default { plugins: [kindling()] };\n`,
+        );
+
+        const vite = spawn(viteBin, ['--port', '0'], { cwd: root, stdio: 'ignore' });
+        let exitSignal;
+        vite.once('exit', (code, signal) => {
+            exitSignal = signal;
+        });
+
+        try {
+            await vi.waitFor(() => expect(fs.existsSync(sentinelIn('public', 'build'))).toBe(true), { timeout: 10000 });
+
+            vite.kill('SIGINT');
+
+            await vi.waitFor(() => expect(exitSignal).toBe('SIGINT'), { timeout: 4000 });
+            expect(fs.existsSync(sentinelIn('public', 'build'))).toBe(false);
+        } finally {
+            vite.kill('SIGKILL');
+        }
+    }, 20000);
 
     it('removes the sentinel from a custom outDir when a build finishes', async () => {
         const entry = path.join(root, 'entry.js');

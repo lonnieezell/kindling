@@ -1,12 +1,17 @@
+import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 
 export default function kindling(options = {}) {
     let sentinelPath;
+    let isBuild;
 
-    function deleteSentinel() {
+    // When given an owner, only deletes a sentinel that owner wrote.
+    function deleteSentinel(owner) {
         try {
-            fs.rmSync(sentinelPath, { force: true });
+            if (owner === undefined || fs.readFileSync(sentinelPath, 'utf8') === owner) {
+                fs.rmSync(sentinelPath, { force: true });
+            }
         } catch {
             // best-effort cleanup
         }
@@ -34,23 +39,41 @@ export default function kindling(options = {}) {
         },
         configResolved(config) {
             sentinelPath = path.resolve(config.root, config.build.outDir, '.vite-dev-running');
+            isBuild = config.command === 'build';
         },
         configureServer(server) {
+            // On restart Vite starts the new server before closing the old one, so each server only removes its own sentinel.
+            const owner = randomUUID();
+
             try {
                 fs.mkdirSync(path.dirname(sentinelPath), { recursive: true });
-                fs.writeFileSync(sentinelPath, '');
+                fs.writeFileSync(sentinelPath, owner);
             } catch (e) {
                 console.warn(`myth-kindling: could not write sentinel file: ${e.message}`);
             }
 
-            const cleanup = () => deleteSentinel();
+            const cleanup = () => {
+                process.off('exit', cleanup);
+                process.off('SIGINT', stopOnSigint);
+                process.off('SIGTERM', cleanup);
+                deleteSentinel(owner);
+            };
+
+            // A SIGINT listener disables Node's default exit, and Vite has no handler of its own, so re-raise it.
+            const stopOnSigint = () => {
+                cleanup();
+                process.kill(process.pid, 'SIGINT');
+            };
+
             process.on('exit', cleanup);
-            process.on('SIGINT', cleanup);
+            process.on('SIGINT', stopOnSigint);
             process.on('SIGTERM', cleanup);
             server.httpServer?.on('close', cleanup);
         },
         closeBundle() {
-            deleteSentinel();
+            if (isBuild) {
+                deleteSentinel();
+            }
         },
     };
 }
