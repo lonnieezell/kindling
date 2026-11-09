@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -499,6 +499,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-a-custom-output-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a custom output directory
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -735,6 +746,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#using-a-custom-output-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using a custom output directory
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -775,7 +797,7 @@
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">class</span> <span class="nc">Kindling</span> <span class="k">extends</span> <span class="nx">KindlingConfig</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">{</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="k">public</span> <span class="k">array</span> <span class="nv">$entryPoints</span> <span class="o">=</span> <span class="p">[</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="s1">&#39;app&#39;</span> <span class="o">=&gt;</span> <span class="s1">&#39;resources/js/app.js&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="s1">'app'</span> <span class="o">=&gt;</span> <span class="s1">'resources/js/app.js'</span><span class="p">,</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="p">];</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="p">}</span>
 </code></pre></div>
@@ -785,8 +807,8 @@
 <p><strong>Type:</strong> <code>array</code> — <strong>Default:</strong> <code>[]</code></p>
 <p>Maps friendly names to source file paths (relative to your project root). This is the most important setting.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="x">public array $entryPoints = [</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="x">    &#39;app&#39;   =&gt; &#39;resources/js/app.js&#39;,</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="x">    &#39;admin&#39; =&gt; &#39;resources/js/admin.js&#39;,</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="x">    'app'   =&gt; 'resources/js/app.js',</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="x">    'admin' =&gt; 'resources/js/admin.js',</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="x">];</span>
 </code></pre></div>
 <p>Names on the left are what you pass to <code>vite_tags()</code>. Paths on the right must match the <code>input</code> array in <code>vite.config.js</code>. Keep them in sync.</p>
@@ -794,7 +816,7 @@
 <h3 id="devserverurl"><code>$devServerUrl</code></h3>
 <p><strong>Type:</strong> <code>string</code> — <strong>Default:</strong> <code>'http://localhost:5173'</code></p>
 <p>The URL of the Vite dev server. Override this if you've changed Vite's default port, or if you're running inside Docker and need to reach the dev server at a different address.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">public string $devServerUrl = &#39;http://localhost:5174&#39;;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="x">public string $devServerUrl = 'http://localhost:5174';</span>
 </code></pre></div>
 <div class="admonition warning">
 <p class="admonition-title">Docker users</p>
@@ -804,32 +826,32 @@
 <h3 id="buildpath"><code>$buildPath</code></h3>
 <p><strong>Type:</strong> <code>string</code> — <strong>Default:</strong> <code>'/build'</code></p>
 <p>The web-accessible path to your production build directory. This is prepended to every file path emitted in production mode.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">public string $buildPath = &#39;/build&#39;;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="x">public string $buildPath = '/build';</span>
 </code></pre></div>
 <p>Keep this in sync with <code>build.outDir</code> in <code>vite.config.js</code>. The default Vite config generated by <code>kindling:install</code> outputs to <code>public/build</code>, which is served as <code>/build</code>.</p>
 <hr />
 <h3 id="manifestpath"><code>$manifestPath</code></h3>
 <p><strong>Type:</strong> <code>string</code> — <strong>Default:</strong> <code>FCPATH . 'build/.vite/manifest.json'</code></p>
 <p>Absolute path to the Vite manifest file on disk. kindling reads this in production mode to resolve entry point names to hashed filenames.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="x">public string $manifestPath = FCPATH . &#39;build/.vite/manifest.json&#39;;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="x">public string $manifestPath = FCPATH . 'build/.vite/manifest.json';</span>
 </code></pre></div>
 <p>You'd only change this if you've customised <code>build.outDir</code> in <code>vite.config.js</code> to point somewhere other than <code>public/build</code>.</p>
 <hr />
 <h3 id="sentinelpath"><code>$sentinelPath</code></h3>
 <p><strong>Type:</strong> <code>string</code> — <strong>Default:</strong> <code>FCPATH . 'build/.vite-dev-running'</code></p>
 <p>Absolute path to the sentinel file the Vite plugin writes when the dev server starts. kindling uses this file's existence to decide whether it's in dev mode.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="x">public string $sentinelPath = FCPATH . &#39;build/.vite-dev-running&#39;;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="x">public string $sentinelPath = FCPATH . 'build/.vite-dev-running';</span>
 </code></pre></div>
-<p>You should rarely need to change this.</p>
+<p>The plugin writes this file inside Vite's <code>build.outDir</code>, so you only need to change this if you've customised <code>build.outDir</code>. See <a href="#using-a-custom-output-directory">Using a custom output directory</a>.</p>
 <hr />
 <h3 id="forcemode"><code>$forceMode</code></h3>
 <p><strong>Type:</strong> <code>?string</code> — <strong>Default:</strong> <code>null</code></p>
 <p>Forces kindling into a specific mode, bypassing sentinel file detection entirely. Accepts <code>'dev'</code>, <code>'prod'</code>, or <code>null</code> (auto-detect).</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="x">// Always use the dev server, even if the sentinel file is missing</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="x">public ?string $forceMode = &#39;dev&#39;;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="x">public ?string $forceMode = 'dev';</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="x">// Always use the built manifest, even during local development</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="x">public ?string $forceMode = &#39;prod&#39;;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="x">public ?string $forceMode = 'prod';</span>
 </code></pre></div>
 <p>This is useful for:</p>
 <ul>
@@ -841,6 +863,54 @@
 <p class="admonition-title">Tip</p>
 <p>Leave <code>$forceMode</code> as <code>null</code> in production. The sentinel file won't exist on your server, so kindling falls through to manifest mode automatically.</p>
 </div>
+<hr />
+<h2 id="using-a-custom-output-directory">Using a custom output directory</h2>
+<p>Your settings in <code>vite.config.js</code> take priority over the plugin's defaults. To build somewhere other than <code>public/build</code>, set <code>build.outDir</code> and <code>base</code> together:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">export</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="nx">defineConfig</span><span class="p">({</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="nx">base</span><span class="o">:</span><span class="w"> </span><span class="s1">'/assets/'</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">    </span><span class="nx">build</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">        </span><span class="nx">outDir</span><span class="o">:</span><span class="w"> </span><span class="s1">'public/assets'</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="nx">plugins</span><span class="o">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">        </span><span class="nx">codeigniter</span><span class="p">({</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">            </span><span class="nx">input</span><span class="o">:</span><span class="w"> </span><span class="p">[</span><span class="s1">'resources/js/app.js'</span><span class="p">],</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">        </span><span class="p">}),</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="p">})</span>
+</code></pre></div>
+<p>The plugin can't tell PHP about these values, so update <code>app/Config/Kindling.php</code> to match:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="x">public string $buildPath    = '/assets';</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="x">public string $manifestPath = FCPATH . 'assets/.vite/manifest.json';</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="x">public string $sentinelPath = FCPATH . 'assets/.vite-dev-running';</span>
+</code></pre></div>
+<p>If these values don't match:</p>
+<table>
+<thead>
+<tr>
+<th>Mismatch</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>base</code></td>
+<td>Production pages load, but images and fonts referenced from CSS and lazy-loaded chunks return 404 because their URLs still point at <code>/build/</code>.</td>
+</tr>
+<tr>
+<td><code>$buildPath</code></td>
+<td>Production script and stylesheet tags return 404.</td>
+</tr>
+<tr>
+<td><code>$manifestPath</code></td>
+<td>kindling can't find the build, so it throws an exception or fails to resolve your entries.</td>
+</tr>
+<tr>
+<td><code>$sentinelPath</code></td>
+<td>kindling doesn't detect the dev server. It throws an exception, or serves your last production build if a manifest exists.</td>
+</tr>
+</tbody>
+</table>
+<p><code>base</code> only applies to production builds. The plugin always uses <code>/</code> for the dev server, because kindling requests dev assets from the root of <code>$devServerUrl</code>.</p>
 
 
 
@@ -940,10 +1010,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "content.code.copy", "navigation.footer", "content.action.edit", "navigation.top", "search.suggest", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "content.code.copy", "navigation.footer", "content.action.edit", "navigation.top", "search.suggest", "search.highlight", "search.share"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
