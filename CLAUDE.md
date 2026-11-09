@@ -45,9 +45,9 @@ composer docker:test -- tests/SomeTest.php
 - `src/Helpers/vite_helper.php` — loaded via `autoload.files`; exposes `vite_tags(string $entry, ?string $nonce = null): string`.
 - `src/Exceptions/KindlingException.php` — base exception; factories: `forNoViteRunning()`, `forUnknownEntry(name, valid[])`.
 - `src/Exceptions/KindlingManifestException.php` — extends base; factories: `forMissingManifest(path)`, `forMissingEntry(key, valid[])`.
-- `src/plugin.js` — ESM Vite plugin bundled with the package; imported directly from `vendor/` in generated `vite.config.js`.
+- `src/plugin.mjs` — ESM Vite plugin bundled with the package; imported directly from `vendor/` in generated `vite.config.js`.
 
-**Dev/prod detection** uses a sentinel file (`public/build/.vite-dev-running`) written by `plugin.js` on dev server start and deleted on shutdown/build. `Config\Kindling::$forceMode` (`'dev'`|`'prod'`|`null`) overrides detection.
+**Dev/prod detection** uses a sentinel file (`public/build/.vite-dev-running`) written by `plugin.mjs` on dev server start and deleted on shutdown/build. `Config\Kindling::$forceMode` (`'dev'`|`'prod'`|`null`) overrides detection.
 
 **Namespace**: `Myth\Kindling\` → `src/`. Test namespaces: `Tests\` → `tests/`, `Tests\Support\` → `tests/_support/`.
 

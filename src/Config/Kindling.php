@@ -10,7 +10,7 @@ use CodeIgniter\Config\BaseConfig;
  * Base configuration for myth/kindling.
  *
  * Extend this class in app/Config/Kindling.php to override defaults.
- * $buildPath and $manifestPath must be kept in sync with build.outDir in vite.config.js.
+ * $buildPath, $manifestPath and $sentinelPath must be kept in sync with build.outDir in vite.config.js.
  */
 class Kindling extends BaseConfig
 {
