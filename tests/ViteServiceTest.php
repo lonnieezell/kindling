@@ -317,7 +317,7 @@ final class ViteServiceTest extends CIUnitTestCase
         $output = $service->tags('app', 'nonce="abc123"');
 
         preg_match_all('/<link[^>]+nonce[^>]*>/', $output, $matches);
-        $this->assertEmpty($matches[0], 'No <link> tag should have a nonce attribute');
+        $this->assertSame([], $matches[0], 'No <link> tag should have a nonce attribute');
     }
 
     public function testUnknownEntryThrowsWithValidNamesList(): void
