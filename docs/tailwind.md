@@ -18,7 +18,7 @@ Or answer `y` at the interactive prompt. kindling generates a Tailwind-aware `vi
 
 ```js
 import { defineConfig } from 'vite'
-import codeigniter from './vendor/myth/kindling/src/plugin.js'
+import codeigniter from './vendor/myth/kindling/src/plugin.mjs'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
@@ -55,7 +55,7 @@ npm install --save-dev @tailwindcss/vite
 
 ```js
 import { defineConfig } from 'vite'
-import codeigniter from './vendor/myth/kindling/src/plugin.js'
+import codeigniter from './vendor/myth/kindling/src/plugin.mjs'
 import tailwindcss from '@tailwindcss/vite'   // add this
 
 export default defineConfig({

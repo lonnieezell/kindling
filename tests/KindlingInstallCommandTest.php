@@ -164,6 +164,34 @@ final class KindlingInstallCommandTest extends CIUnitTestCase
         $this->assertStringContainsString('npm install --save-dev vite', $this->getStreamFilterBuffer());
     }
 
+    /**
+     * The generated vite.config.js must import a plugin file the package actually ships.
+     */
+    public function testGeneratedViteConfigImportsPluginFileThatExists(): void
+    {
+        $this->command->run(['entry' => 'app', 'no-tailwind' => true]);
+
+        $this->assertGeneratedPluginImportExists();
+    }
+
+    /**
+     * The Tailwind variant of vite.config.js must import a plugin file the package actually ships.
+     */
+    public function testGeneratedTailwindViteConfigImportsPluginFileThatExists(): void
+    {
+        $this->command->run(['entry' => 'app', 'tailwind' => true]);
+
+        $this->assertGeneratedPluginImportExists();
+    }
+
+    private function assertGeneratedPluginImportExists(): void
+    {
+        $contents = (string) file_get_contents($this->tmpDir . '/vite.config.js');
+
+        $this->assertSame(1, preg_match("#from '\\./vendor/myth/kindling/([^']+)'#", $contents, $matches));
+        $this->assertFileExists(dirname(__DIR__) . '/' . $matches[1]);
+    }
+
     // -------------------------------------------------------------------------
     // Tailwind: --tailwind flag
     // -------------------------------------------------------------------------

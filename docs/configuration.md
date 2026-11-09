@@ -97,7 +97,7 @@ Absolute path to the sentinel file the Vite plugin writes when the dev server st
 public string $sentinelPath = FCPATH . 'build/.vite-dev-running';
 ```
 
-You should rarely need to change this.
+The plugin writes this file inside Vite's `build.outDir`, so you only need to change this if you've customised `build.outDir`. See [Using a custom output directory](#using-a-custom-output-directory).
 
 ---
 
@@ -123,3 +123,42 @@ This is useful for:
 
 !!! tip
     Leave `$forceMode` as `null` in production. The sentinel file won't exist on your server, so kindling falls through to manifest mode automatically.
+
+---
+
+## Using a custom output directory
+
+Your settings in `vite.config.js` take priority over the plugin's defaults. To build somewhere other than `public/build`, set `build.outDir` and `base` together:
+
+```js
+export default defineConfig({
+    base: '/assets/',
+    build: {
+        outDir: 'public/assets',
+    },
+    plugins: [
+        codeigniter({
+            input: ['resources/js/app.js'],
+        }),
+    ],
+})
+```
+
+The plugin can't tell PHP about these values, so update `app/Config/Kindling.php` to match:
+
+```php
+public string $buildPath    = '/assets';
+public string $manifestPath = FCPATH . 'assets/.vite/manifest.json';
+public string $sentinelPath = FCPATH . 'assets/.vite-dev-running';
+```
+
+If these values don't match:
+
+| Mismatch | What happens |
+| --- | --- |
+| `base` | Production pages load, but images and fonts referenced from CSS and lazy-loaded chunks return 404 because their URLs still point at `/build/`. |
+| `$buildPath` | Production script and stylesheet tags return 404. |
+| `$manifestPath` | kindling can't find the build, so it throws an exception or fails to resolve your entries. |
+| `$sentinelPath` | kindling doesn't detect the dev server. It throws an exception, or serves your last production build if a manifest exists. |
+
+`base` only applies to production builds. The plugin always uses `/` for the dev server, because kindling requests dev assets from the root of `$devServerUrl`.

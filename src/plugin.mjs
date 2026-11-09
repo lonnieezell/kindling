@@ -1,30 +1,39 @@
 import fs from 'fs';
 import path from 'path';
 
-const sentinelPath = path.resolve(process.cwd(), 'public/build/.vite-dev-running');
+export default function kindling(options = {}) {
+    let sentinelPath;
 
-function deleteSentinel() {
-    try {
-        fs.rmSync(sentinelPath, { force: true });
-    } catch {
-        // best-effort cleanup
+    function deleteSentinel() {
+        try {
+            fs.rmSync(sentinelPath, { force: true });
+        } catch {
+            // best-effort cleanup
+        }
     }
-}
 
-export default function kindling(options = { input: ['resources/js/app.js'] }) {
     return {
         name: 'myth-kindling',
         config(config, { command }) {
+            const userRollupOptions = config.build?.rollupOptions;
+            const input = options.input ?? userRollupOptions?.input ?? ['resources/js/app.js'];
+
+            // Vite concatenates arrays when merging a hook's result, so a user-set input is replaced in place.
+            if (userRollupOptions?.input) {
+                userRollupOptions.input = input;
+            }
+
             return {
-                base: command === 'serve' ? '/' : '/build/',
+                base: command === 'serve' ? '/' : (config.base ?? '/build/'),
                 build: {
-                    outDir: 'public/build',
-                    manifest: true,
-                    rollupOptions: {
-                        input: options.input,
-                    },
+                    outDir: config.build?.outDir ?? 'public/build',
+                    manifest: config.build?.manifest ?? true,
+                    rollupOptions: userRollupOptions?.input ? {} : { input },
                 },
             };
+        },
+        configResolved(config) {
+            sentinelPath = path.resolve(config.root, config.build.outDir, '.vite-dev-running');
         },
         configureServer(server) {
             try {

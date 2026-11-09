@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import codeigniter from './vendor/myth/kindling/src/plugin.js'
+import codeigniter from './vendor/myth/kindling/src/plugin.mjs'
 
 export default defineConfig({
     plugins: [

@@ -4,6 +4,7 @@
         "test": "vitest run"
     },
     "devDependencies": {
+        "vite": "^6.4.5",
         "vitest": "^3.0.0"
     }
 }
